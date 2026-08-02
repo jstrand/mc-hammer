@@ -1,0 +1,13 @@
+services:
+  mc:
+    image: itzg/minecraft-server
+    container_name: {{ .ContainerName }}
+    environment:
+      EULA: "true"
+    ports:
+      - "{{ .Port }}:25565"
+    volumes:
+      - ./data:/data
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

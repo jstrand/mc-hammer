@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Server Details - MC Hammer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta11/dist/css/tabler.min.css" crossorigin="anonymous" />
+  </head>
+  <body class="antialiased">
+    <div class="page">
+      <header class="navbar navbar-expand-md navbar-light d-print-none">
+        <div class="container-xl">
+          <a class="navbar-brand" href="/">
+            <span class="navbar-brand-icon"></span>
+            <span class="navbar-brand-text">MC Hammer</span>
+          </a>
+          <div class="navbar-nav ms-auto">
+            <a class="btn btn-secondary" href="/">Back to list</a>
+          </div>
+        </div>
+      </header>
+      <div class="page-wrapper">
+        <div class="page-body">
+          <div class="container-xl">
+            <div class="page-header d-print-none mt-4">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h2 class="page-title">Server Details</h2>
+                  <p class="text-muted">Inspect and delete a running server.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-4">
+              <div class="col-12 col-xl-8">
+                <div class="card">
+                  <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">Server Information</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="commands-tab" data-bs-toggle="tab" data-bs-target="#commands" type="button" role="tab">Commands</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Logs</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="config-tab" data-bs-toggle="tab" data-bs-target="#config" type="button" role="tab">Configuration</button>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="tab-content">
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                      <div class="card-body">
+                        <div class="row g-3 mb-3">
+                          <div class="col-md-6">
+                            <label class="form-label">ID</label>
+                            <div id="server-id" class="form-control-plaintext"></div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <div id="server-name" class="form-control-plaintext"></div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Port</label>
+                            <div id="server-port" class="form-control-plaintext"></div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <div id="server-status" class="form-control-plaintext"></div>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label">Created</label>
+                            <div id="server-created" class="form-control-plaintext"></div>
+                          </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                          <button id="delete-server" class="btn btn-danger">Delete Server</button>
+                        </div>
+                        <div class="mt-3" id="server-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="tab-pane fade" id="commands" role="tabpanel">
+                      <div class="card-body">
+                        <div class="mb-3">
+                          <label class="form-label">Send command</label>
+                          <input id="command-input" type="text" class="form-control" placeholder="say hello or list" />
+                        </div>
+                        <div class="d-flex gap-2 mb-3">
+                          <button id="run-command" class="btn btn-primary">Run</button>
+                          <span id="command-status" class="text-muted"></span>
+                        </div>
+                        <label class="form-label">Command output</label>
+                        <pre id="command-output" class="card p-3" style="min-height: 220px; white-space: pre-wrap; word-break: break-word; background: #f8f9fa;"></pre>
+                      </div>
+                    </div>
+                    <div class="tab-pane fade" id="config" role="tabpanel">
+                      <div class="card-body">
+                        <div class="mb-3">
+                          <label class="form-label">server.properties</label>
+                          <textarea id="properties-editor" class="form-control" rows="18" style="font-family: monospace; font-size: 13px;"></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                          <button id="save-properties" class="btn btn-primary">Save Configuration</button>
+                          <span id="properties-status" class="text-muted"></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane fade" id="logs" role="tabpanel">
+                      <div class="card-body">
+                        <div style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;" id="logs-output">
+                          <div class="text-muted">Loading logs...</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta11/dist/js/tabler.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/server.js"></script>
+  </body>
+</html>
