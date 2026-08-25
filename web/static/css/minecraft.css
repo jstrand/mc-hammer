@@ -30,6 +30,19 @@
   --mc-emerald: #2fa84f;
 }
 
+#mc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
 body {
   font-family: 'Minecraft', 'Press Start 2P', ui-monospace, Consolas, monospace;
   background: var(--mc-bg);
