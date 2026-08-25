@@ -4,21 +4,25 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MC Hammer Portal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect width=%2216%22 height=%2216%22 fill=%22%235d9c3f%22/></svg>" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta11/dist/css/tabler.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/static/css/minecraft.css" />
   </head>
   <body class="antialiased">
     <div class="page">
-      <header class="navbar navbar-expand-md navbar-light d-print-none">
+      <header class="navbar navbar-expand-md d-print-none">
         <div class="container-xl">
           <a class="navbar-brand" href="/">
-            <span class="navbar-brand-icon"></span>
-            <span class="navbar-brand-text">MC Hammer</span>
+            <span class="brand-icon">⛏️</span>
+            <span>MC Hammer</span>
           </a>
-          <div class="navbar-nav d-none d-md-flex">
-            <a class="nav-link active" href="/">Servers</a>
-          </div>
-          <div class="navbar-nav ms-auto">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createServerModal">Create Server</button>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#top-menu">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="navbar-collapse collapse" id="top-menu">
+            <div class="navbar-nav ms-auto">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createServerModal">+ Create Server</button>
+            </div>
           </div>
         </div>
       </header>

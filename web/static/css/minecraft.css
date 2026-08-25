@@ -1,0 +1,393 @@
+/* MC Hammer — Minecraft-themed skin on top of Tabler's base CSS/JS.
+   Tabler still supplies grid, utility classes and Bootstrap JS behavior
+   (modal, tabs, collapse); this file re-skins colors, borders and type. */
+
+@font-face {
+  font-family: 'Minecraft';
+  src: url('https://unpkg.com/typeface-minecraft/files/minecraft.woff2') format('woff2'),
+       url('https://unpkg.com/typeface-minecraft/files/minecraft.woff') format('woff'),
+       url('https://unpkg.com/typeface-minecraft/files/minecraft.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  --mc-grass: #5d9c3f;
+  --mc-grass-dark: #3f7028;
+  --mc-dirt: #7a4b28;
+  --mc-dirt-dark: #543319;
+  --mc-stone: #8a8a8a;
+  --mc-stone-dark: #6b6b6b;
+  --mc-stone-darker: #4a4a4a;
+  --mc-bg: #2b2620;
+  --mc-bg-deep: #1c1814;
+  --mc-panel: #313027;
+  --mc-panel-light: #46443a;
+  --mc-cream: #efe7cf;
+  --mc-gold: #e0c341;
+  --mc-diamond: #4ec9e0;
+  --mc-redstone: #b02e26;
+  --mc-redstone-dark: #7a1d18;
+  --mc-emerald: #2fa84f;
+}
+
+body {
+  font-family: 'Minecraft', 'Press Start 2P', ui-monospace, Consolas, monospace;
+  background: var(--mc-bg);
+  color: var(--mc-cream);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, .page-title, .card-title, .navbar-brand {
+  font-family: 'Minecraft', 'Press Start 2P', ui-monospace, monospace;
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+}
+
+.page-title {
+  color: var(--mc-cream);
+}
+
+.text-muted {
+  color: #b9b09a !important;
+}
+
+a {
+  color: var(--mc-diamond);
+}
+a:hover {
+  color: #7adcef;
+}
+
+/* ---------- Layout: top navbar ---------- */
+
+.page {
+  min-height: 100vh;
+}
+
+header.navbar {
+  background:
+    linear-gradient(180deg, var(--mc-grass) 0, var(--mc-grass) 6px, var(--mc-dirt) 6px, var(--mc-dirt-dark) 100%);
+  border-bottom: 4px solid #000;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25);
+  min-height: 88px;
+}
+
+header.navbar .container-xl {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.navbar-brand {
+  color: var(--mc-cream) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.brand-icon {
+  font-size: 1.4rem;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5));
+}
+
+header.navbar .nav-link {
+  font-family: 'Minecraft', monospace;
+  color: var(--mc-cream);
+  background: rgba(0,0,0,0.25);
+  border: 2px solid #000;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.15), inset -2px -2px 0 rgba(0,0,0,0.35);
+  border-radius: 0;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+  margin: 0 0.25rem;
+}
+
+header.navbar .nav-link:hover {
+  background: rgba(255,255,255,0.12);
+  color: var(--mc-gold);
+}
+
+header.navbar .nav-item.active .nav-link,
+header.navbar .nav-link.active {
+  background: var(--mc-stone-darker);
+  color: var(--mc-gold);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.4), inset -2px -2px 0 rgba(255,255,255,0.1);
+}
+
+header.navbar .btn {
+  padding: 0.75rem 1.25rem;
+}
+
+.nav-link-icon {
+  font-size: 1.1rem;
+}
+
+.navbar-toggler {
+  filter: invert(1) drop-shadow(0 0 2px #000);
+}
+
+.page-wrapper {
+  background: transparent;
+}
+
+/* ---------- Panels / cards (inventory-style) ---------- */
+
+.card {
+  background: var(--mc-panel);
+  border: 3px solid #000;
+  border-radius: 0;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.06), inset -2px -2px 0 rgba(0,0,0,0.4), 4px 4px 0 rgba(0,0,0,0.35);
+  color: var(--mc-cream);
+}
+
+.card-header {
+  background: linear-gradient(180deg, var(--mc-stone) 0%, var(--mc-stone-dark) 100%);
+  border-bottom: 3px solid #000;
+  color: #1c1a15;
+}
+
+.card-title {
+  color: #1c1a15;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.25);
+}
+
+.card-body {
+  background: var(--mc-panel);
+}
+
+/* ---------- Table ---------- */
+
+.table {
+  color: var(--mc-cream);
+  --tblr-table-striped-bg: rgba(255,255,255,0.03);
+}
+
+.table thead th {
+  font-family: 'Minecraft', monospace;
+  color: var(--mc-gold);
+  border-bottom: 2px solid #000 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.table td, .table th {
+  border-color: rgba(255,255,255,0.08);
+}
+
+.table-hover tbody tr:hover {
+  background: rgba(93,156,63,0.15);
+  color: var(--mc-cream);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  font-family: 'Minecraft', monospace;
+  border-radius: 0;
+  border: none;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.3), inset -2px -2px 0 rgba(0,0,0,0.4), 2px 2px 0 rgba(0,0,0,0.35);
+  transition: transform 0.05s ease;
+}
+
+.btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: inset -2px -2px 0 rgba(255,255,255,0.15), inset 2px 2px 0 rgba(0,0,0,0.4);
+}
+
+.btn-primary {
+  background: var(--mc-grass);
+  border-color: #000;
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--mc-grass-dark);
+  color: #fff;
+}
+
+.btn-secondary, .btn-outline-secondary {
+  background: var(--mc-stone);
+  color: #1c1a15;
+}
+.btn-outline-secondary {
+  background: var(--mc-stone-dark);
+  color: var(--mc-cream);
+}
+.btn-secondary:hover, .btn-outline-secondary:hover {
+  background: var(--mc-stone-darker);
+  color: var(--mc-cream);
+}
+
+.btn-danger {
+  background: var(--mc-redstone);
+  color: #fff;
+}
+.btn-danger:hover {
+  background: var(--mc-redstone-dark);
+  color: #fff;
+}
+
+.btn-outline-success {
+  background: var(--mc-emerald);
+  color: #fff;
+  border: none;
+}
+.btn-outline-success:hover {
+  background: #248540;
+  color: #fff;
+}
+
+.btn-outline-warning {
+  background: var(--mc-gold);
+  color: #3a2e00;
+}
+.btn-outline-warning:hover {
+  background: #c7a92f;
+  color: #3a2e00;
+}
+
+.btn-outline-primary {
+  background: var(--mc-diamond);
+  color: #062b31;
+  border: none;
+}
+.btn-outline-primary:hover {
+  background: #3bb6cd;
+  color: #062b31;
+}
+
+.btn-close {
+  filter: invert(1) grayscale(1) brightness(1.6);
+}
+
+/* ---------- Forms ---------- */
+
+.form-label {
+  font-family: 'Minecraft', monospace;
+  color: var(--mc-gold);
+  font-size: 0.8rem;
+}
+
+.form-control, textarea.form-control {
+  font-family: 'Minecraft', ui-monospace, monospace;
+  background: #1c1a15;
+  border: 2px solid #000;
+  border-radius: 0;
+  color: var(--mc-cream);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.5);
+}
+
+.form-control:focus {
+  background: #232019;
+  border-color: var(--mc-diamond);
+  color: var(--mc-cream);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.5), 0 0 0 2px rgba(78,201,224,0.35);
+}
+
+.form-control-plaintext {
+  color: var(--mc-cream);
+}
+
+/* ---------- Modal ---------- */
+
+.modal-content {
+  background: var(--mc-panel);
+  border: 3px solid #000;
+  border-radius: 0;
+  color: var(--mc-cream);
+}
+
+.modal-header {
+  background: linear-gradient(180deg, var(--mc-stone) 0%, var(--mc-stone-dark) 100%);
+  border-bottom: 3px solid #000;
+  color: #1c1a15;
+}
+
+.modal-title {
+  color: #1c1a15;
+}
+
+.modal-footer {
+  border-top: 3px solid #000;
+}
+
+/* ---------- Tabs ---------- */
+
+.nav-tabs {
+  border-bottom: 3px solid #000;
+}
+
+.nav-tabs .nav-link {
+  font-family: 'Minecraft', monospace;
+  color: var(--mc-cream);
+  background: rgba(0,0,0,0.25);
+  border: 2px solid #000;
+  border-radius: 0;
+  margin-right: 4px;
+}
+
+.nav-tabs .nav-link.active {
+  background: var(--mc-panel);
+  color: var(--mc-gold);
+  border-bottom-color: var(--mc-panel);
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--mc-gold);
+}
+
+/* ---------- Alerts ---------- */
+
+.alert {
+  border-radius: 0;
+  border: 2px solid #000;
+  font-family: 'Minecraft', monospace;
+}
+
+.alert-success {
+  background: rgba(47,168,79,0.25);
+  color: #b7f3c2;
+}
+
+.alert-danger {
+  background: rgba(176,46,38,0.25);
+  color: #ffc3bf;
+}
+
+/* ---------- Console (logs / command output) ---------- */
+
+.mc-console {
+  background: #0d0d0d;
+  color: #7cff7c;
+  border: 2px solid #000;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.6);
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 12px;
+}
+
+#command-output.mc-console {
+  min-height: 220px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 1rem;
+}
+
+#logs-output.mc-console {
+  padding: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Spinner ---------- */
+
+.spinner-border.text-primary {
+  color: var(--mc-grass) !important;
+}
