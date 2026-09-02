@@ -2,6 +2,8 @@ package main
 
 import (
     "encoding/json"
+    "flag"
+    "fmt"
     "io"
     "log"
     "net/http"
@@ -14,6 +16,12 @@ import (
 )
 
 func main() {
+    port := flag.Int("port", 8080, "port the portal listens on")
+    flag.Parse()
+    if *port < 1 || *port > 65535 {
+        log.Fatalf("invalid port %d: must be between 1 and 65535", *port)
+    }
+
     baseDir := filepath.Join("./servers")
     manager, err := server.NewManager(baseDir)
     if err != nil {
@@ -117,14 +125,14 @@ func main() {
     mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
     srv := &http.Server{
-        Addr:         ":8080",
+        Addr:         fmt.Sprintf(":%d", *port),
         Handler:      mux,
         ReadTimeout:  15 * time.Second,
         WriteTimeout: 15 * time.Second,
         IdleTimeout:  60 * time.Second,
     }
 
-    log.Printf("starting mc-hammer portal on http://localhost:8080")
+    log.Printf("starting mc-hammer portal on http://localhost:%d", *port)
     if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
         log.Fatalf("server error: %v", err)
     }
