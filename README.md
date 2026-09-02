@@ -2,6 +2,8 @@
 
 A local web portal for managing Minecraft servers running in Docker Compose.
 
+![The MC Hammer portal: a Minecraft-styled server list over an animated pixel-art backdrop](screenshot.png)
+
 ## Requirements
 
 - Go 1.22+
