@@ -46,15 +46,14 @@ service. From a checkout on the server:
 sudo ./deploy/install.sh
 ```
 
-That builds a binary, installs it to `/opt/mc-hammer` along with `web/`, creates
-a `mchammer` system user in the `docker` group, and enables
-`deploy/mc-hammer.service` at boot. Re-run the script to deploy a new build; it
-never touches the contents of `servers/`.
+That builds a binary, installs it to `/opt/mc-hammer` along with `web/`, and
+enables `deploy/mc-hammer.service` at boot. Re-run the script to deploy a new
+build; it never touches the contents of `servers/`.
 
 Defaults can be overridden (keep `sudo -E` so the variables survive):
 
 ```bash
-MC_HAMMER_DIR=/srv/mc-hammer MC_HAMMER_USER=mc MC_HAMMER_PORT=9000 sudo -E ./deploy/install.sh
+MC_HAMMER_DIR=/srv/mc-hammer MC_HAMMER_PORT=9000 sudo -E ./deploy/install.sh
 ```
 
 Day to day:
@@ -72,11 +71,16 @@ The Minecraft servers themselves need nothing extra: their generated compose
 files use `restart: unless-stopped`, so Docker brings them back after a reboot
 on its own.
 
-Two things worth knowing:
+Three things worth knowing:
 
-- Membership in the `docker` group is root-equivalent on the host, so don't
-  expose the portal to the open internet — keep it behind a firewall, a VPN, or
-  an authenticating reverse proxy.
+- The service runs as **root**. That is deliberate: the Minecraft containers
+  write their world data as uid 1000, so a lesser user gets `permission denied`
+  when deleting a server, and port 80 needs the privilege anyway. Do not add
+  `CapabilityBoundingSet=` to the unit — trimming root's capabilities drops
+  `CAP_DAC_OVERRIDE` and brings the delete failure straight back.
+- Because it is root and drives the Docker socket, don't expose the portal to
+  the open internet — keep it behind a firewall, a VPN, or an authenticating
+  reverse proxy.
 - The portal resolves `./servers` and `web/static` relative to its working
   directory, which is why the unit sets `WorkingDirectory`.
 

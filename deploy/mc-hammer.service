@@ -6,8 +6,11 @@ Wants=network-online.target docker.service
 
 [Service]
 Type=simple
-User=@USER@
-Group=@USER@
+# Runs as root on purpose. The Minecraft containers write their world data as
+# uid 1000, so a lesser user cannot delete servers/<id>/data (EACCES on unlink),
+# and binding port 80 needs the privilege anyway. Managing the docker socket is
+# already root-equivalent on this host, so this is a small step, not a new one.
+User=root
 # The portal resolves ./servers and web/static relative to the working directory.
 WorkingDirectory=@INSTALL_DIR@
 Environment=HOME=@INSTALL_DIR@
@@ -17,13 +20,9 @@ ExecStart=@INSTALL_DIR@/mc-hammer -port ${MC_HAMMER_PORT}
 Restart=always
 RestartSec=3
 
-# Lets the unprivileged service user bind ports below 1024 (e.g. MC_HAMMER_PORT=80).
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-
-# Modest hardening. Note the service user is in the docker group, which is
-# root-equivalent on the host, so treat this as tidiness rather than a boundary.
-NoNewPrivileges=true
+# Modest hardening only. Do NOT add CapabilityBoundingSet here: trimming root's
+# capabilities drops CAP_DAC_OVERRIDE, which is precisely what lets the portal
+# delete the container-owned files under servers/<id>/data.
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=true

@@ -9,12 +9,14 @@
 #
 # Defaults can be overridden with environment variables (keep sudo -E):
 #
-#   MC_HAMMER_DIR=/srv/mc-hammer MC_HAMMER_USER=mc MC_HAMMER_PORT=9000 sudo -E ./deploy/install.sh
+#   MC_HAMMER_DIR=/srv/mc-hammer MC_HAMMER_PORT=9000 sudo -E ./deploy/install.sh
+#
+# The service runs as root: it deletes world data written by the containers as
+# uid 1000, and binds port 80 by default.
 #
 set -euo pipefail
 
 INSTALL_DIR="${MC_HAMMER_DIR:-/opt/mc-hammer}"
-SERVICE_USER="${MC_HAMMER_USER:-mchammer}"
 PORT="${MC_HAMMER_PORT:-80}"
 SERVICE_NAME="mc-hammer"
 DEFAULTS_FILE="/etc/default/${SERVICE_NAME}"
@@ -31,6 +33,16 @@ if ! command -v systemctl >/dev/null 2>&1; then
     echo "error: systemctl not found; this script targets systemd hosts" >&2
     exit 1
 fi
+
+# The unit sets ProtectHome=true, which hides /home and /root from the service.
+case "$INSTALL_DIR" in
+    /home/*|/root/*|/home|/root)
+        echo "error: MC_HAMMER_DIR=$INSTALL_DIR is under a home directory, which the" >&2
+        echo "       unit's ProtectHome=true makes invisible to the service." >&2
+        echo "       Pick something like /opt/mc-hammer or /srv/mc-hammer." >&2
+        exit 1
+        ;;
+esac
 
 # --- toolchain -------------------------------------------------------------
 
@@ -53,19 +65,6 @@ elif ! docker compose version >/dev/null 2>&1; then
     echo "warning: 'docker compose' unavailable; install the docker-compose-plugin package" >&2
 fi
 
-# --- service user ----------------------------------------------------------
-
-if ! id -u "$SERVICE_USER" >/dev/null 2>&1; then
-    echo "creating system user $SERVICE_USER"
-    useradd --system --user-group --home-dir "$INSTALL_DIR" --shell /usr/sbin/nologin "$SERVICE_USER"
-fi
-
-if getent group docker >/dev/null 2>&1; then
-    usermod -aG docker "$SERVICE_USER"
-else
-    echo "warning: no 'docker' group on this host; $SERVICE_USER will not be able to reach the docker socket" >&2
-fi
-
 # --- build -----------------------------------------------------------------
 
 BUILD_DIR="$(mktemp -d)"
@@ -76,26 +75,23 @@ echo "building mc-hammer with $GO_BIN"
 
 # --- install ---------------------------------------------------------------
 
-# Only the top-level servers/ dir is created and chowned. Its contents are left
-# alone on purpose: the Minecraft containers write into data/ as their own uid,
-# and a recursive chown here would lock them out of their own worlds.
-install -d -o "$SERVICE_USER" -g "$SERVICE_USER" "$INSTALL_DIR" "$INSTALL_DIR/servers"
+# Existing contents of servers/ are never touched: the Minecraft containers own
+# the files under data/ as their own uid, and disturbing that breaks live worlds.
+install -d "$INSTALL_DIR" "$INSTALL_DIR/servers"
 
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     echo "stopping $SERVICE_NAME"
     systemctl stop "$SERVICE_NAME"
 fi
 
-install -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0755 "$BUILD_DIR/mc-hammer" "$INSTALL_DIR/mc-hammer"
+install -m 0755 "$BUILD_DIR/mc-hammer" "$INSTALL_DIR/mc-hammer"
 
 if [ "$REPO_DIR" = "$INSTALL_DIR" ]; then
     echo "repo checkout is the install dir; leaving web/ in place"
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/web"
 else
     echo "installing static assets into $INSTALL_DIR/web"
     rm -rf "$INSTALL_DIR/web"
     cp -R "$REPO_DIR/web" "$INSTALL_DIR/web"
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/web"
 fi
 
 if [ -f "$DEFAULTS_FILE" ]; then
@@ -109,7 +105,6 @@ fi
 
 echo "writing $UNIT_FILE"
 sed -e "s|@INSTALL_DIR@|$INSTALL_DIR|g" \
-    -e "s|@USER@|$SERVICE_USER|g" \
     -e "s|@PORT@|$PORT|g" \
     "$REPO_DIR/deploy/mc-hammer.service" > "$UNIT_FILE"
 chmod 0644 "$UNIT_FILE"
