@@ -37,6 +37,49 @@ go run ./cmd/portal
 
 2. Open `http://localhost:8080`
 
+## Run as a service (Debian/Ubuntu)
+
+To keep the portal running across crashes and reboots, install it as a systemd
+service. From a checkout on the server:
+
+```bash
+sudo ./deploy/install.sh
+```
+
+That builds a binary, installs it to `/opt/mc-hammer` along with `web/`, creates
+a `mchammer` system user in the `docker` group, and enables
+`deploy/mc-hammer.service` at boot. Re-run the script to deploy a new build; it
+never touches the contents of `servers/`.
+
+Defaults can be overridden (keep `sudo -E` so the variables survive):
+
+```bash
+MC_HAMMER_DIR=/srv/mc-hammer MC_HAMMER_USER=mc MC_HAMMER_PORT=9000 sudo -E ./deploy/install.sh
+```
+
+Day to day:
+
+```bash
+systemctl status mc-hammer
+journalctl -u mc-hammer -f
+systemctl restart mc-hammer
+```
+
+The listen port lives in `/etc/default/mc-hammer` — edit it and restart. To
+remove the service: `sudo systemctl disable --now mc-hammer && sudo rm /etc/systemd/system/mc-hammer.service`.
+
+The Minecraft servers themselves need nothing extra: their generated compose
+files use `restart: unless-stopped`, so Docker brings them back after a reboot
+on its own.
+
+Two things worth knowing:
+
+- Membership in the `docker` group is root-equivalent on the host, so don't
+  expose the portal to the open internet — keep it behind a firewall, a VPN, or
+  an authenticating reverse proxy.
+- The portal resolves `./servers` and `web/static` relative to its working
+  directory, which is why the unit sets `WorkingDirectory`.
+
 ## Usage
 
 - Create a new server by name and port.

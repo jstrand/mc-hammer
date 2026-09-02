@@ -1,0 +1,29 @@
+[Unit]
+Description=MC Hammer Minecraft server portal
+# Wants (not Requires) so a docker upgrade that restarts dockerd does not stop the portal.
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+# The portal resolves ./servers and web/static relative to the working directory.
+WorkingDirectory=@INSTALL_DIR@
+Environment=HOME=@INSTALL_DIR@
+Environment=MC_HAMMER_PORT=@PORT@
+EnvironmentFile=-/etc/default/mc-hammer
+ExecStart=@INSTALL_DIR@/mc-hammer -port ${MC_HAMMER_PORT}
+Restart=always
+RestartSec=3
+
+# Modest hardening. Note the service user is in the docker group, which is
+# root-equivalent on the host, so treat this as tidiness rather than a boundary.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=@INSTALL_DIR@
+
+[Install]
+WantedBy=multi-user.target
