@@ -22,6 +22,9 @@ const composeTemplate = `services:
     container_name: {{ .ContainerName }}
     environment:
       EULA: "true"
+      ENABLE_WHITELIST: "true"
+      ENFORCE_WHITELIST: "true"
+      EXISTING_WHITELIST_FILE: "SKIP"
     ports:
       - "{{ .Port }}:25565"
     volumes:

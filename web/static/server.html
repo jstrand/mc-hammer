@@ -87,7 +87,7 @@
                       <div class="card-body">
                         <div class="mb-3">
                           <label class="form-label">Send command</label>
-                          <input id="command-input" type="text" class="form-control" placeholder="say hello or list" />
+                          <input id="command-input" type="text" class="form-control" placeholder="whitelist add Steve, op Steve, or list" />
                         </div>
                         <div class="d-flex gap-2 mb-3">
                           <button id="run-command" class="btn btn-primary">Run</button>
@@ -95,6 +95,47 @@
                         </div>
                         <label class="form-label">Command output</label>
                         <pre id="command-output" class="mc-console"></pre>
+
+                        <div class="mc-cmd-help mt-4">
+                          <h3 class="mc-cmd-help-title">Managing players</h3>
+                          <p class="mc-cmd-help-intro">
+                            Commands run against the live server, so it must be running.
+                            Player names are looked up with Mojang and must be spelled exactly —
+                            there is no search or partial matching.
+                          </p>
+
+                          <h4 class="mc-cmd-help-sub">Whitelist &mdash; who may join</h4>
+                          <p>New servers are created with the whitelist <strong>on</strong>, and it starts empty,
+                             so nobody can connect until you add them.</p>
+                          <dl class="mc-cmd-list">
+                            <dt>whitelist add &lt;player&gt;</dt>
+                            <dd>Let a player join. Takes effect immediately.</dd>
+                            <dt>whitelist remove &lt;player&gt;</dt>
+                            <dd>Revoke access. Kicks them if they are online.</dd>
+                            <dt>whitelist list</dt>
+                            <dd>Show everyone currently whitelisted.</dd>
+                            <dt>whitelist on / whitelist off</dt>
+                            <dd>Turn enforcement on or off without clearing the list.</dd>
+                            <dt>whitelist reload</dt>
+                            <dd>Re-read <code>whitelist.json</code> after editing it by hand.</dd>
+                          </dl>
+
+                          <h4 class="mc-cmd-help-sub">Operators &mdash; who may use admin commands</h4>
+                          <p>Ops can run admin commands in-game and bypass spawn protection.
+                             Being an op is <strong>separate</strong> from the whitelist: an op who is not
+                             whitelisted still cannot join.</p>
+                          <dl class="mc-cmd-list">
+                            <dt>op &lt;player&gt;</dt>
+                            <dd>Grant operator status. Recorded in <code>ops.json</code>.</dd>
+                            <dt>deop &lt;player&gt;</dt>
+                            <dd>Revoke operator status.</dd>
+                          </dl>
+
+                          <p class="mc-cmd-help-note">
+                            To let a new admin in, you need both:
+                            <code>whitelist add Alex</code> then <code>op Alex</code>.
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <div class="tab-pane fade" id="config" role="tabpanel">

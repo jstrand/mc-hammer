@@ -404,3 +404,75 @@ header.navbar .btn {
 .spinner-border.text-primary {
   color: var(--mc-grass) !important;
 }
+
+/* ---------- Command reference (Commands tab) ---------- */
+
+.mc-cmd-help {
+  background: var(--mc-panel);
+  border: 2px solid var(--mc-stone-darker);
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05),
+              inset -2px -2px 0 rgba(0,0,0,0.4);
+  padding: 1rem 1.25rem;
+  color: var(--mc-cream);
+}
+
+.mc-cmd-help-title {
+  font-size: 15px;
+  color: var(--mc-gold);
+  margin: 0 0 0.5rem;
+}
+
+.mc-cmd-help-sub {
+  font-size: 13px;
+  color: var(--mc-diamond);
+  margin: 1.25rem 0 0.5rem;
+  border-bottom: 2px solid var(--mc-stone-darker);
+  padding-bottom: 0.35rem;
+}
+
+.mc-cmd-help p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.mc-cmd-help-intro {
+  color: #c9c1ab;
+}
+
+.mc-cmd-list {
+  margin: 0;
+}
+
+.mc-cmd-list dt {
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: #7cff7c;
+  background: #0d0d0d;
+  border: 2px solid #000;
+  padding: 2px 8px;
+  margin-top: 0.6rem;
+  display: inline-block;
+}
+
+.mc-cmd-list dd {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c9c1ab;
+  margin: 0.25rem 0 0 0.25rem;
+}
+
+.mc-cmd-help code {
+  font-family: ui-monospace, 'Courier New', monospace;
+  color: var(--mc-gold);
+  background: rgba(0,0,0,0.35);
+  padding: 1px 4px;
+}
+
+.mc-cmd-help-note {
+  margin-top: 1.25rem !important;
+  border-left: 4px solid var(--mc-grass);
+  padding-left: 0.75rem;
+  color: var(--mc-cream) !important;
+}
