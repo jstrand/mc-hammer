@@ -85,6 +85,11 @@
                           <label class="form-label">Port</label>
                           <input type="number" class="form-control" id="server-port" required value="25565" min="1024" max="65535" />
                         </div>
+                        <div class="mb-3">
+                          <label class="form-label">Minecraft version</label>
+                          <input type="text" class="form-control" id="server-version" required value="1.21.11" maxlength="32" pattern="[A-Za-z0-9._-]+" placeholder="1.21.11" />
+                          <small class="form-hint">A version like <code>1.21.11</code>, or <code>LATEST</code> for the newest release. Browse available versions at <a href="https://mcversions.net" target="_blank" rel="noopener noreferrer">mcversions.net</a>.</small>
+                        </div>
                       </div>
                       <div id="create-loading" style="display: none; text-align: center;">
                         <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">

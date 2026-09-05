@@ -25,7 +25,7 @@ const composeTemplate = `services:
       ENABLE_WHITELIST: "true"
       ENFORCE_WHITELIST: "true"
       EXISTING_WHITELIST_FILE: "SKIP"
-      VERSION: "1.21.11"
+      VERSION: "{{ .Version }}"
     ports:
       - "{{ .Port }}:25565"
     volumes:
@@ -43,6 +43,42 @@ type Manager struct {
 type composeData struct {
     Port          int
     ContainerName string
+    Version       string
+}
+
+// defaultVersion is used when the caller leaves the version blank.
+const defaultVersion = "1.21.11"
+
+// maxVersionLen is a sanity bound; real itzg VERSION values are far shorter.
+const maxVersionLen = 32
+
+// validateVersion checks a user-supplied itzg/minecraft-server VERSION value.
+//
+// The result is written into a double-quoted YAML scalar in the generated
+// compose file, so anything outside [A-Za-z0-9._-] is rejected rather than
+// escaped: that keeps quotes and newlines from breaking out of the scalar and
+// keeps '$' from being picked up by Compose's variable interpolation. Every
+// real value fits the allowlist -- "1.21.11", "LATEST", "SNAPSHOT", "23w13a",
+// "b1.7.3".
+func validateVersion(input string) (string, error) {
+    version := strings.TrimSpace(input)
+    if version == "" {
+        return defaultVersion, nil
+    }
+    if len(version) > maxVersionLen {
+        return "", fmt.Errorf("version must be at most %d characters", maxVersionLen)
+    }
+    for _, r := range version {
+        switch {
+        case r >= 'a' && r <= 'z':
+        case r >= 'A' && r <= 'Z':
+        case r >= '0' && r <= '9':
+        case r == '.' || r == '_' || r == '-':
+        default:
+            return "", fmt.Errorf("invalid character %q in version: use letters, digits, dots, dashes and underscores, e.g. \"1.21.11\" or \"LATEST\"", r)
+        }
+    }
+    return version, nil
 }
 
 func NewManager(baseDir string) (*Manager, error) {
@@ -93,13 +129,44 @@ func (m *Manager) Get(ctx context.Context, id string) (Server, error) {
     return server, nil
 }
 
-func (m *Manager) Create(ctx context.Context, req CreateRequest) (Server, error) {
-    log.Printf("[manager] creating server: name=%s, port=%d", req.Name, req.Port)
-    if req.Port < 1024 || req.Port > 65535 {
-        return Server{}, fmt.Errorf("port must be between 1024 and 65535")
+// validateServerFields applies the checks shared by Create and Update. It
+// returns the sanitized name and the normalized version.
+func validateServerFields(name string, port int, version string) (string, string, error) {
+    if port < 1024 || port > 65535 {
+        return "", "", fmt.Errorf("port must be between 1024 and 65535")
     }
-    if strings.TrimSpace(req.Name) == "" {
-        return Server{}, fmt.Errorf("name is required")
+    if strings.TrimSpace(name) == "" {
+        return "", "", fmt.Errorf("name is required")
+    }
+    normalized, err := validateVersion(version)
+    if err != nil {
+        return "", "", err
+    }
+    return sanitizeName(name), normalized, nil
+}
+
+// writeComposeFile renders the compose template into composeDir, replacing any
+// file already there. The container name is derived from the id, so it stays
+// stable when a server is edited.
+func (m *Manager) writeComposeFile(composeDir, id string, port int, version string) (string, error) {
+    composePath := ComposeFilePath(composeDir)
+    f, err := os.Create(composePath)
+    if err != nil {
+        return "", err
+    }
+    defer f.Close()
+    data := composeData{Port: port, ContainerName: ContainerName(id), Version: version}
+    if err := m.tmpl.Execute(f, data); err != nil {
+        return "", err
+    }
+    return composePath, nil
+}
+
+func (m *Manager) Create(ctx context.Context, req CreateRequest) (Server, error) {
+    log.Printf("[manager] creating server: name=%s, port=%d, version=%s", req.Name, req.Port, req.Version)
+    name, version, err := validateServerFields(req.Name, req.Port, req.Version)
+    if err != nil {
+        return Server{}, err
     }
     conflict, conflictServer, err := m.runningServerOnPort(ctx, req.Port, "")
     if err != nil {
@@ -111,14 +178,8 @@ func (m *Manager) Create(ctx context.Context, req CreateRequest) (Server, error)
     if err := os.MkdirAll(filepath.Join(composeDir, "data"), 0o755); err != nil {
         return Server{}, err
     }
-    composePath := ComposeFilePath(composeDir)
-    data := composeData{Port: req.Port, ContainerName: ContainerName(id)}
-    f, err := os.Create(composePath)
+    composePath, err := m.writeComposeFile(composeDir, id, req.Port, version)
     if err != nil {
-        return Server{}, err
-    }
-    defer f.Close()
-    if err := m.tmpl.Execute(f, data); err != nil {
         return Server{}, err
     }
     log.Printf("[manager] generated compose file at %s", composePath)
@@ -129,8 +190,9 @@ func (m *Manager) Create(ctx context.Context, req CreateRequest) (Server, error)
     }
     server := Server{
         ID:         id,
-        Name:       sanitizeName(req.Name),
+        Name:       name,
         Port:       req.Port,
+        Version:    version,
         Status:     status,
         CreatedAt:  time.Now().UTC(),
         ComposeDir: composeDir,
@@ -149,6 +211,44 @@ func (m *Manager) Create(ctx context.Context, req CreateRequest) (Server, error)
     server.Status = "running"
     log.Printf("[manager] server %s is now running", id)
     return server, nil
+}
+
+// Update rewrites a server's name, port and version. The compose file is
+// regenerated immediately, but a container that is already running keeps its
+// current settings until it is recreated, so callers should tell the user to
+// restart the server.
+func (m *Manager) Update(ctx context.Context, id string, req UpdateRequest) (Server, error) {
+    log.Printf("[manager] updating server %s: name=%s, port=%d, version=%s", id, req.Name, req.Port, req.Version)
+    existing, err := m.loadServer(id)
+    if err != nil {
+        log.Printf("[manager] failed to load server %s: %v", id, err)
+        return Server{}, err
+    }
+    name, version, err := validateServerFields(req.Name, req.Port, req.Version)
+    if err != nil {
+        return Server{}, err
+    }
+    conflict, conflictServer, err := m.runningServerOnPort(ctx, req.Port, id)
+    if err != nil {
+        return Server{}, err
+    }
+    if conflict {
+        return Server{}, fmt.Errorf("port %d is already in use by running server %s", req.Port, conflictServer)
+    }
+    composePath, err := m.writeComposeFile(existing.ComposeDir, id, req.Port, version)
+    if err != nil {
+        return Server{}, err
+    }
+    log.Printf("[manager] regenerated compose file at %s", composePath)
+    existing.Name = name
+    existing.Port = req.Port
+    existing.Version = version
+    if err := m.saveServer(existing); err != nil {
+        return Server{}, err
+    }
+    status, _ := ComposeStatus(ctx, composePath)
+    existing.Status = status
+    return existing, nil
 }
 
 func (m *Manager) Delete(ctx context.Context, id string) error {

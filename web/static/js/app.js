@@ -125,6 +125,7 @@ async function handleCreate(event) {
   event.preventDefault();
   const name = document.querySelector('#server-name').value.trim();
   const port = Number(document.querySelector('#server-port').value);
+  const version = document.querySelector('#server-version').value.trim();
   const formContent = document.querySelector('#create-form-content');
   const loading = document.querySelector('#create-loading');
   const submitBtn = document.querySelector('#create-submit-btn');
@@ -142,7 +143,7 @@ async function handleCreate(event) {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, port }),
+      body: JSON.stringify({ name, port, version }),
     });
 
     if (!response.ok) {

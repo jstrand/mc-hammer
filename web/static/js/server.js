@@ -18,9 +18,114 @@ async function fetchServerLogs(id) {
   return response.text();
 }
 
+async function doServerAction(id, action) {
+  const response = await fetch(`/api/servers/${id}/action?type=${action}`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Failed to ${action} server`);
+  }
+}
+
+// The name the delete confirmation must match. Kept in sync with the saved
+// server, not the Name field, which the user may have edited without saving.
+let currentServerName = '';
+
+function setDeleteTarget(name) {
+  currentServerName = name;
+  setText('delete-server-name', name);
+  syncDeleteButton();
+}
+
+function syncDeleteButton() {
+  const button = document.getElementById('delete-server');
+  const input = document.getElementById('delete-confirm-name');
+  if (!button || !input) return;
+  button.disabled = currentServerName === '' || input.value.trim() !== currentServerName;
+}
+
+function attachDeleteAction(id) {
+  const button = document.getElementById('delete-server');
+  const input = document.getElementById('delete-confirm-name');
+  const status = document.getElementById('delete-status');
+  if (!button || !input || !status) return;
+
+  input.addEventListener('input', syncDeleteButton);
+  syncDeleteButton();
+
+  button.onclick = async () => {
+    if (!confirm(`Delete "${currentServerName}" and all of its data?`)) {
+      return;
+    }
+    status.className = 'text-muted';
+    status.textContent = 'Deleting...';
+    button.disabled = true;
+    try {
+      const response = await fetch(`/api/servers/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to delete server');
+      }
+      window.location.href = '/';
+    } catch (err) {
+      status.className = 'text-danger';
+      status.textContent = err.message;
+      syncDeleteButton();
+    }
+  };
+}
+
+// Only one of Start/Stop applies at a time; "starting" and "unknown" leave both
+// available so a stuck server can be nudged either way.
+function renderStatus(status) {
+  setText('server-status', status);
+  const startButton = document.getElementById('start-server');
+  const stopButton = document.getElementById('stop-server');
+  if (startButton) startButton.disabled = status === 'running';
+  if (stopButton) stopButton.disabled = status === 'stopped';
+}
+
+function attachServerActions(id) {
+  const startButton = document.getElementById('start-server');
+  const stopButton = document.getElementById('stop-server');
+  const status = document.getElementById('server-action-status');
+  if (!startButton || !stopButton || !status) return;
+
+  [['start', startButton], ['stop', stopButton]].forEach(([action, button]) => {
+    button.onclick = async () => {
+      status.className = 'text-muted';
+      status.textContent = action === 'start' ? 'Starting...' : 'Stopping...';
+      startButton.disabled = true;
+      stopButton.disabled = true;
+      try {
+        await doServerAction(id, action);
+        status.className = 'text-success';
+        status.textContent = action === 'start' ? 'Server started.' : 'Server stopped.';
+      } catch (err) {
+        status.className = 'text-danger';
+        status.textContent = err.message;
+      }
+      // Re-read the real status either way: it also re-enables the buttons.
+      try {
+        const current = await fetchServer(id);
+        renderStatus(current.status);
+      } catch (refreshError) {
+        startButton.disabled = false;
+        stopButton.disabled = false;
+      }
+    };
+  });
+}
+
 function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
 }
 
 function formatDate(value) {
@@ -87,23 +192,58 @@ async function loadServerDetails() {
   try {
     const server = await fetchServer(id);
     setText('server-id', server.id);
-    setText('server-name', server.name);
-    setText('server-port', server.port);
-    setText('server-status', server.status);
+    renderStatus(server.status);
+    attachServerActions(id);
+    setDeleteTarget(server.name);
     setText('server-created', formatDate(server.createdAt));
-    document.getElementById('delete-server').onclick = async () => {
-      if (!confirm('Delete this server and all data?')) {
-        return;
-      }
-      const response = await fetch(`/api/servers/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errorText = await response.text();
-        feedback.textContent = errorText || 'Failed to delete server';
-        feedback.classList.add('text-danger');
-        return;
-      }
-      window.location.href = '/';
-    };
+    setValue('server-name', server.name);
+    setValue('server-port', server.port);
+    // Servers created before the version field existed have no value recorded;
+    // saving the form will write one.
+    setValue('server-version', server.version || '');
+
+    const editForm = document.getElementById('edit-server-form');
+    if (editForm) {
+      editForm.onsubmit = async event => {
+        event.preventDefault();
+        const status = document.getElementById('server-save-status');
+        const saveButton = document.getElementById('save-server');
+        const body = {
+          name: document.getElementById('server-name').value.trim(),
+          port: Number(document.getElementById('server-port').value),
+          version: document.getElementById('server-version').value.trim(),
+        };
+        status.className = 'text-muted';
+        status.textContent = 'Saving...';
+        saveButton.disabled = true;
+        try {
+          const response = await fetch(`/api/servers/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Failed to save server');
+          }
+          const updated = await response.json();
+          renderStatus(updated.status);
+          setDeleteTarget(updated.name);
+          setValue('server-name', updated.name);
+          setValue('server-port', updated.port);
+          setValue('server-version', updated.version);
+          status.className = 'text-warning';
+          status.textContent = 'Saved. Restart the server to apply the changes.';
+        } catch (err) {
+          status.className = 'text-danger';
+          status.textContent = err.message;
+        } finally {
+          saveButton.disabled = false;
+        }
+      };
+    }
+
+    attachDeleteAction(id);
 
     const saveButton = document.getElementById('save-properties');
     if (saveButton) {

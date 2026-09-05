@@ -103,6 +103,8 @@ func main() {
         switch r.Method {
         case http.MethodGet:
             getServer(w, r, manager, id)
+        case http.MethodPut:
+            updateServer(w, r, manager, id)
         case http.MethodDelete:
             deleteServer(w, r, manager, id)
         default:
@@ -180,6 +182,20 @@ func createServer(w http.ResponseWriter, r *http.Request, manager *server.Manage
         return
     }
     w.WriteHeader(http.StatusCreated)
+    writeJSON(w, entry)
+}
+
+func updateServer(w http.ResponseWriter, r *http.Request, manager *server.Manager, id string) {
+    var req server.UpdateRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, "invalid request body", http.StatusBadRequest)
+        return
+    }
+    entry, err := manager.Update(r.Context(), id, req)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
     writeJSON(w, entry)
 }
 
