@@ -25,6 +25,7 @@ const composeTemplate = `services:
       ENABLE_WHITELIST: "true"
       ENFORCE_WHITELIST: "true"
       EXISTING_WHITELIST_FILE: "SKIP"
+      VERSION: "1.21.11"
     ports:
       - "{{ .Port }}:25565"
     volumes:
