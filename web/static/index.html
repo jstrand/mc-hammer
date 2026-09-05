@@ -79,7 +79,11 @@
                       <div id="create-form-content">
                         <div class="mb-3">
                           <label class="form-label">Server name</label>
-                          <input type="text" class="form-control" id="server-name" required placeholder="My Minecraft Server" />
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="server-name" required placeholder="My Minecraft Server" />
+                            <button type="button" class="btn btn-outline-secondary" id="suggest-name" title="Suggest another name" aria-label="Suggest another name">🎲</button>
+                          </div>
+                          <small class="form-hint">A name is suggested for you — edit it or roll another.</small>
                         </div>
                         <div class="mb-3">
                           <label class="form-label">Port</label>

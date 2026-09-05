@@ -2,6 +2,56 @@ const apiUrl = '/api/servers';
 
 let createServerModal;
 
+const NAME_ADJECTIVES = [
+  'Blocky', 'Craggy', 'Cubic', 'Diamond', 'Emerald', 'Endless', 'Golden',
+  'Hollow', 'Lava', 'Mossy', 'Netherite', 'Obsidian', 'Pixel', 'Redstone',
+  'Rugged', 'Shady', 'Sunken', 'Twilight', 'Verdant', 'Windswept',
+];
+
+const NAME_NOUNS = [
+  'Bastion', 'Bedrock', 'Caverns', 'Citadel', 'Cliffs', 'Cove', 'Depths',
+  'Fortress', 'Grotto', 'Highlands', 'Keep', 'Mesa', 'Mineshaft', 'Outpost',
+  'Ravine', 'Realm', 'Spawn', 'Stronghold', 'Summit', 'Valley', 'Wilds',
+];
+
+// Names of the servers from the last list load, so suggestions don't collide.
+let knownServerNames = [];
+
+// The suggestion currently sitting in the name field. Used to tell an untouched
+// suggestion (safe to replace) from a name the user typed (never replace).
+let lastSuggestedName = '';
+
+function pick(values) {
+  return values[Math.floor(Math.random() * values.length)];
+}
+
+function suggestServerName() {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = `${pick(NAME_ADJECTIVES)} ${pick(NAME_NOUNS)}`;
+    if (!knownServerNames.includes(candidate)) {
+      return candidate;
+    }
+  }
+  // Every roll collided, so fall back to numbering one of them.
+  const base = `${pick(NAME_ADJECTIVES)} ${pick(NAME_NOUNS)}`;
+  let suffix = 2;
+  while (knownServerNames.includes(`${base} ${suffix}`)) {
+    suffix += 1;
+  }
+  return `${base} ${suffix}`;
+}
+
+function fillSuggestedName(force) {
+  const input = document.querySelector('#server-name');
+  if (!input) return;
+  const current = input.value.trim();
+  if (!force && current !== '' && current !== lastSuggestedName) {
+    return;
+  }
+  lastSuggestedName = suggestServerName();
+  input.value = lastSuggestedName;
+}
+
 async function fetchServers() {
   const response = await fetch(apiUrl);
   if (!response.ok) {
@@ -69,6 +119,7 @@ async function doServerAction(id, action) {
 async function loadServers() {
   try {
     const servers = await fetchServers();
+    knownServerNames = (servers || []).map(server => server.name);
     renderServers(servers);
     attachServerActions();
   } catch (error) {
@@ -167,7 +218,10 @@ async function handleCreate(event) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  createServerModal = new bootstrap.Modal(document.getElementById('createServerModal'));
+  const modalElement = document.getElementById('createServerModal');
+  createServerModal = new bootstrap.Modal(modalElement);
   loadServers();
   document.querySelector('#create-form').addEventListener('submit', handleCreate);
+  modalElement.addEventListener('show.bs.modal', () => fillSuggestedName(false));
+  document.querySelector('#suggest-name').addEventListener('click', () => fillSuggestedName(true));
 });
